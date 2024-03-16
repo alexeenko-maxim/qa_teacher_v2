@@ -5,7 +5,9 @@ import 'package:qa_teacher/router/router.dart';
 import '../../../api/model/student.dart';
 
 class StudentsList extends StatefulWidget {
-  const StudentsList({super.key});
+  final Future<List<Student>> studentsList;
+
+  const StudentsList({Key? key, required this.studentsList}) : super(key: key);
 
   @override
   State<StudentsList> createState() => _StudentsListState();
@@ -14,23 +16,34 @@ class StudentsList extends StatefulWidget {
 class _StudentsListState extends State<StudentsList> {
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        const SliverToBoxAdapter(
-          child: SizedBox(
-            height: 40,
-          ),
-        ),
-        SliverList.builder(
-          itemCount: 5,
-          itemBuilder: (context, index) => StudentRow(
-            student: Student(
-                studentId: index,
-                fullName: 'TestStudent_$index',
-                currentLessonNumber: 1),
-          ),
-        ),
-      ],
+    return FutureBuilder<List<Student>>(
+      future: widget.studentsList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Ошибка загрузки: ${snapshot.error.toString()}'));
+        } else if (snapshot.hasData) {
+          return CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 40),
+              ),
+              SliverList.builder(
+                itemCount: snapshot.data!.length, // Предполагаем, что snapshot.data содержит ваш список студентов
+                itemBuilder: (context, index) {
+                  final student = snapshot.data![index];
+                  return StudentRow(
+                    student: student, // StudentRow - предполагаемый виджет для отображения информации о студенте
+                  );
+                },
+              ),
+            ],
+          );
+        } else {
+          return const Center(child: Text('Студенты не найдены'));
+        }
+      },
     );
   }
 }
@@ -73,6 +86,8 @@ class StudentRow extends StatelessWidget {
               ),
               TextButton(
                   onPressed: () {
+                    //final questions = await apiClient.startLesson(student.studentId); // Предполагаем, что student - это объект вашей модели Student
+                    //AutoRouter.of(context).push(LessonRoute(questions: questions)); // Предполагаем, что LessonRoute принимает список вопросов
                     AutoRouter.of(context).push(const LessonRoute());
                   },
                   child: const Text('Начать следующий урок',
