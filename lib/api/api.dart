@@ -26,6 +26,9 @@ abstract class QaTeacherApiClient {
 
   @GET('/getStudentList')
   Future<List<Student>> getStudentList();
+
+  @GET('/getQuestions')
+  Future<List<Question>> getQuestionList();
   
   @POST('/startLesson')
   Future<List<Question>> startLesson(@Field('studentId') int studentId);
