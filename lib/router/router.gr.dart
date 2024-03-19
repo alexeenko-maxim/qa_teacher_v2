@@ -21,6 +21,12 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const HomeScreen(),
       );
     },
+    KnowledgeRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const KnowledgeScreen(),
+      );
+    },
     LessonRoute.name: (routeData) {
       final args = routeData.argsAs<LessonRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -45,6 +51,20 @@ class HomeRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'HomeRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [KnowledgeScreen]
+class KnowledgeRoute extends PageRouteInfo<void> {
+  const KnowledgeRoute({List<PageRouteInfo>? children})
+      : super(
+          KnowledgeRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'KnowledgeRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

@@ -58,10 +58,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             TextButton(
               onPressed: () {
+                AutoRouter.of(context).push(KnowledgeRoute());
                 // Действия при нажатии на Кнопка 1
               },
               child: const Text(
-                'Список студентов',
+                'База знаний',
                 style: TextStyle(
                   color: Colors.blue,
                 ),
