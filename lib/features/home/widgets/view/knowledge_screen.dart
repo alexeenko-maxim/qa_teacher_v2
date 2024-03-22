@@ -1,8 +1,10 @@
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:qa_teacher/api/api.dart';
 import 'package:qa_teacher/api/model/question.dart';
+import 'package:qa_teacher/router/router.dart';
 
 @RoutePage()
 class KnowledgeScreen extends StatefulWidget {
@@ -35,16 +37,29 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   }
 }
 
-class KnowledgeAppBar extends StatelessWidget implements PreferredSizeWidget {
+class KnowledgeAppBar extends StatefulWidget implements PreferredSizeWidget {
   const KnowledgeAppBar({Key? key}) : super(key: key);
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  State<KnowledgeAppBar> createState() => _KnowledgeAppBarState();
 
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.grey,
+      leading: IconButton(
+        icon: Icon(Icons.home),
+        tooltip: 'Главная', // Текст, который будет показан при долгом нажатии
+        onPressed: () {
+          // Логика для возвращения на главный экран
+          AutoRouter.of(context).replace(const HomeRoute());
+        },
+      ),
       title: const Text(
         'База знаний',
         style: TextStyle(
@@ -52,20 +67,16 @@ class KnowledgeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: <Widget>[
-        Row(
-          children: [
-            TextButton(
-              onPressed: () {
-                // Действия при нажатии на Кнопка 1
-              },
-              child: const Text(
-                'Добавить вопрос',
-                style: TextStyle(
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-          ],
+        TextButton(
+          onPressed: () async {
+            // Обработчик для "Добавить новый вопрос"
+          },
+          child: const Text('Добавить новый вопрос',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.white, // Указываем цвет текста
+              )),
         ),
       ],
     );
@@ -88,22 +99,18 @@ class _QuestionListViewState extends State<QuestionListView> {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
-        // Другие Sliver виджеты, если они есть...
         FutureBuilder<List<Question>>(
           future: widget.questionList,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              // Показываем индикатор загрузки, пока данные загружаются
               return const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               );
             } else if (snapshot.hasError) {
-              // Показываем сообщение об ошибке, если что-то пошло не так
               return SliverFillRemaining(
                 child: Center(child: Text('Ошибка: ${snapshot.error}')),
               );
             } else if (snapshot.hasData) {
-              // Данные доступны, создаем список вопросов
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -113,13 +120,13 @@ class _QuestionListViewState extends State<QuestionListView> {
                       question: question.questionText,
                       answerForTeacher: question.answerForTeacherText,
                       lessonNumber: question.lessonNumber,
+                      questionId: question.questionId,
                     );
                   },
                   childCount: snapshot.data!.length,
                 ),
               );
             } else {
-              // Данные не найдены
               return const SliverFillRemaining(
                 child: Center(child: Text('Нет данных')),
               );
@@ -134,17 +141,19 @@ class _QuestionListViewState extends State<QuestionListView> {
 
 class QuestionRow extends StatefulWidget {
   const QuestionRow({
-    super.key,
-    required this.index, // Добавлен порядковый номер строки
+    Key? key,
+    required this.index,
     required this.question,
     required this.answerForTeacher,
     required this.lessonNumber,
-  });
+    required this.questionId, // Добавьте questionId здесь
+  }) : super(key: key);
 
-  final int index; // Порядковый номер строки
+  final int index;
   final int lessonNumber;
   final String question;
   final String answerForTeacher;
+  final int questionId; // И здесь
 
   @override
   State<QuestionRow> createState() => _QuestionRowState();
@@ -158,58 +167,226 @@ class _QuestionRowState extends State<QuestionRow> {
       margin: const EdgeInsets.symmetric(horizontal: 30).copyWith(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1)),
-      child: Row(
+      child: Row( // Используем Row для горизонтального расположения элементов
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${widget.lessonNumber}', // номер урока
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${widget.index}', // Порядковый номер строки
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+        children: [ // Правильно используем children для списка виджетов в Row
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.question,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
+                  '${widget.lessonNumber}', // номер урока
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 4), // Добавляем небольшой отступ
                 Text(
-                  widget.answerForTeacher,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
+                  '${widget.index}', // Порядковый номер вопроса
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8), // Отступ между номером вопроса и его текстом
+                Text(
+                  widget.question, // Текст вопроса
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4), // Отступ между вопросом и ответом
+                Text(
+                  widget.answerForTeacher, // Ответ для учителя
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
             ),
           ),
-          TextButton(
-              onPressed: () async {
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditQuestionScreen(
+                  questionId: widget.questionId,
+                  questionText: widget.question,
+                  answerForTeacherText: widget.answerForTeacher,
+                  lessonNumber: widget.lessonNumber,
+                )),
+              );
 
-              },
-              child: const Text('Изменить',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  )))
+              if (result == true) {
+                // Здесь можно обновить список, если необходимо
+              }
+            },
+          ),
         ],
       ),
     );
   }
 }
+
+class EditQuestionScreen extends StatefulWidget {
+  final int questionId;
+  final String questionText;
+  final String answerForTeacherText;
+  final int lessonNumber; // Добавляем номер урока
+
+  const EditQuestionScreen({
+    Key? key,
+    required this.questionId,
+    required this.questionText,
+    required this.answerForTeacherText,
+    required this.lessonNumber, // Инициализируем номер урока
+  }) : super(key: key);
+
+  @override
+  _EditQuestionScreenState createState() => _EditQuestionScreenState();
+}
+
+class _EditQuestionScreenState extends State<EditQuestionScreen> {
+  late TextEditingController _questionController;
+  late TextEditingController _answerController;
+  late TextEditingController _lessonNumberController; // Контроллер для номера урока
+
+  @override
+  void initState() {
+    super.initState();
+    _questionController = TextEditingController(text: widget.questionText);
+    _answerController = TextEditingController(text: widget.answerForTeacherText);
+    _lessonNumberController = TextEditingController(text: widget.lessonNumber.toString()); // Инициализация контроллера
+  }
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    _answerController.dispose();
+    _lessonNumberController.dispose(); // Не забываем очистить контроллер
+    super.dispose();
+  }
+
+  Future<void> _updateQuestion() async {
+    // Здесь будет логика обновления вопроса через API
+    // Не забудьте обновить API для включения номера урока в запросе на обновление
+
+    // Пример вызова API:
+    // await apiClient.updateQuestion(
+    //   questionId: widget.questionId,
+    //   questionText: _questionController.text,
+    //   answerForTeacherText: _answerController.text,
+    //   lessonNumber: int.tryParse(_lessonNumberController.text) ?? widget.lessonNumber
+    // );
+
+    Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Редактирование вопроса'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _questionController,
+              decoration: InputDecoration(labelText: 'Текст вопроса'),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _answerController,
+              decoration: InputDecoration(labelText: 'Ответ для учителя'),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _lessonNumberController, // Добавляем поле для номера урока
+              decoration: InputDecoration(labelText: 'Номер урока'),
+              keyboardType: TextInputType.number, // Устанавливаем тип клавиатуры
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _updateQuestion,
+              child: Text('Сохранить'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AddQuestionScreen extends StatefulWidget {
+  const AddQuestionScreen({Key? key}) : super(key: key);
+
+  @override
+  _AddQuestionScreenState createState() => _AddQuestionScreenState();
+}
+
+class _AddQuestionScreenState extends State<AddQuestionScreen> {
+  final TextEditingController _questionController = TextEditingController();
+  final TextEditingController _answerController = TextEditingController();
+  final TextEditingController _lessonNumberController = TextEditingController();
+
+  Future<void> _addQuestion() async {
+    // Здесь будет логика добавления вопроса через API
+    // Пример вызова API:
+    // await apiClient.addQuestion(
+    //   questionText: _questionController.text,
+    //   answerForTeacherText: _answerController.text,
+    //   lessonNumber: int.tryParse(_lessonNumberController.text) ?? 1 // Примерная логика
+    // );
+
+    Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Добавить новый вопрос'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _questionController,
+              decoration: InputDecoration(labelText: 'Текст вопроса'),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _answerController,
+              decoration: InputDecoration(labelText: 'Ответ для учителя'),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _lessonNumberController,
+              decoration: InputDecoration(labelText: 'Номер урока'),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _addQuestion,
+              child: Text('Добавить'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    _answerController.dispose();
+    _lessonNumberController.dispose();
+    super.dispose();
+  }
+}
+
