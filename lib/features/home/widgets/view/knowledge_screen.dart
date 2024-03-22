@@ -32,8 +32,15 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
       appBar: const KnowledgeAppBar(),
       body: QuestionListView(
         questionList: questionList,
+        onQuestionUpdated: onQuestionUpdated,
       ),
     );
+  }
+
+  void onQuestionUpdated() {
+    setState(() {
+      questionList = apiClient.getQuestionList();
+    });
   }
 }
 
@@ -86,9 +93,10 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
 class QuestionListView extends StatefulWidget {
   const QuestionListView({
     Key? key,
-    required this.questionList,
+    required this.questionList, required this.onQuestionUpdated,
   }) : super(key: key);
   final Future<List<Question>> questionList;
+  final VoidCallback onQuestionUpdated;
 
   @override
   State<QuestionListView> createState() => _QuestionListViewState();
@@ -116,6 +124,7 @@ class _QuestionListViewState extends State<QuestionListView> {
                       (context, index) {
                     final question = snapshot.data![index];
                     return QuestionRow(
+                      onQuestionUpdated: widget.onQuestionUpdated,
                       index: index + 1, // Передаем порядковый номер строки, начиная с 1
                       question: question.questionText,
                       answerForTeacher: question.answerForTeacherText,
@@ -137,16 +146,18 @@ class _QuestionListViewState extends State<QuestionListView> {
       ],
     );
   }
+
 }
 
 class QuestionRow extends StatefulWidget {
+  final VoidCallback onQuestionUpdated;
   const QuestionRow({
     Key? key,
     required this.index,
     required this.question,
     required this.answerForTeacher,
     required this.lessonNumber,
-    required this.questionId, // Добавьте questionId здесь
+    required this.questionId, required this.onQuestionUpdated, // Добавьте questionId здесь
   }) : super(key: key);
 
   final int index;
@@ -209,18 +220,11 @@ class _QuestionRowState extends State<QuestionRow> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EditQuestionScreen(
-                  questionId: widget.questionId,
-                  questionText: widget.question,
-                  answerForTeacherText: widget.answerForTeacher,
-                  lessonNumber: widget.lessonNumber,
-                )),
-              );
-
+              var result = await AutoRouter.of(context).push(EditQuestionRoute(
+                  questionId: widget.questionId, questionText: widget.question, answerForTeacherText: widget.answerForTeacher, lessonNumber: widget.lessonNumber));
               if (result == true) {
-                // Здесь можно обновить список, если необходимо
+                // Если вопрос был успешно отредактирован, используйте callback для обновления списка вопросов
+                widget.onQuestionUpdated();
               }
             },
           ),
@@ -229,7 +233,7 @@ class _QuestionRowState extends State<QuestionRow> {
     );
   }
 }
-
+@RoutePage()
 class EditQuestionScreen extends StatefulWidget {
   final int questionId;
   final String questionText;
@@ -249,6 +253,7 @@ class EditQuestionScreen extends StatefulWidget {
 }
 
 class _EditQuestionScreenState extends State<EditQuestionScreen> {
+  late final QaTeacherApiClient apiClient;
   late TextEditingController _questionController;
   late TextEditingController _answerController;
   late TextEditingController _lessonNumberController; // Контроллер для номера урока
@@ -256,6 +261,7 @@ class _EditQuestionScreenState extends State<EditQuestionScreen> {
   @override
   void initState() {
     super.initState();
+    apiClient = QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']);
     _questionController = TextEditingController(text: widget.questionText);
     _answerController = TextEditingController(text: widget.answerForTeacherText);
     _lessonNumberController = TextEditingController(text: widget.lessonNumber.toString()); // Инициализация контроллера
@@ -273,13 +279,13 @@ class _EditQuestionScreenState extends State<EditQuestionScreen> {
     // Здесь будет логика обновления вопроса через API
     // Не забудьте обновить API для включения номера урока в запросе на обновление
 
-    // Пример вызова API:
-    // await apiClient.updateQuestion(
-    //   questionId: widget.questionId,
-    //   questionText: _questionController.text,
-    //   answerForTeacherText: _answerController.text,
-    //   lessonNumber: int.tryParse(_lessonNumberController.text) ?? widget.lessonNumber
-    // );
+    //Пример вызова API:
+    await apiClient.updateQuestion(
+      questionId: widget.questionId,
+      questionText: _questionController.text,
+      answerForTeacherText: _answerController.text,
+      lessonNumber: int.tryParse(_lessonNumberController.text) ?? widget.lessonNumber
+    );
 
     Navigator.pop(context, true);
   }

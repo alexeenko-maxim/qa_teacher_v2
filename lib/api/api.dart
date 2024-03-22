@@ -32,4 +32,12 @@ abstract class QaTeacherApiClient {
   
   @POST('/startLesson')
   Future<List<Question>> startLesson(@Field('studentId') int studentId);
+
+  @PUT('/updateQuestion')
+  Future<void> updateQuestion({
+    @Field('questionId') required int questionId,
+    @Field('questionText') required String questionText,
+    @Field('answerForTeacherText') required String answerForTeacherText,
+    @Field('lessonNumber') required int lessonNumber,
+  });
 }

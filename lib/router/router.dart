@@ -16,5 +16,6 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: HomeRoute.page, path: '/'),
         AutoRoute(page: LessonRoute.page, path: '/lesson'),
         AutoRoute(page: KnowledgeRoute.page, path: '/knowledge'),
+        AutoRoute(page: EditQuestionRoute.page, path: '/editQuestion'),
       ];
 }

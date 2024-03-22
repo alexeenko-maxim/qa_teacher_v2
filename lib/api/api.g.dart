@@ -105,6 +105,40 @@ class _QaTeacherApiClient implements QaTeacherApiClient {
     return value;
   }
 
+  @override
+  Future<void> updateQuestion({
+    required int questionId,
+    required String questionText,
+    required String answerForTeacherText,
+    required int lessonNumber,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = {
+      'questionId': questionId,
+      'questionText': questionText,
+      'answerForTeacherText': answerForTeacherText,
+      'lessonNumber': lessonNumber,
+    };
+    await _dio.fetch<void>(_setStreamType<void>(Options(
+      method: 'PUT',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/updateQuestion',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

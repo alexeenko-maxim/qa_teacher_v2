@@ -15,6 +15,19 @@ abstract class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
+    EditQuestionRoute.name: (routeData) {
+      final args = routeData.argsAs<EditQuestionRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: EditQuestionScreen(
+          key: args.key,
+          questionId: args.questionId,
+          questionText: args.questionText,
+          answerForTeacherText: args.answerForTeacherText,
+          lessonNumber: args.lessonNumber,
+        ),
+      );
+    },
     HomeRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -39,6 +52,59 @@ abstract class _$AppRouter extends RootStackRouter {
       );
     },
   };
+}
+
+/// generated route for
+/// [EditQuestionScreen]
+class EditQuestionRoute extends PageRouteInfo<EditQuestionRouteArgs> {
+  EditQuestionRoute({
+    Key? key,
+    required int questionId,
+    required String questionText,
+    required String answerForTeacherText,
+    required int lessonNumber,
+    List<PageRouteInfo>? children,
+  }) : super(
+          EditQuestionRoute.name,
+          args: EditQuestionRouteArgs(
+            key: key,
+            questionId: questionId,
+            questionText: questionText,
+            answerForTeacherText: answerForTeacherText,
+            lessonNumber: lessonNumber,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'EditQuestionRoute';
+
+  static const PageInfo<EditQuestionRouteArgs> page =
+      PageInfo<EditQuestionRouteArgs>(name);
+}
+
+class EditQuestionRouteArgs {
+  const EditQuestionRouteArgs({
+    this.key,
+    required this.questionId,
+    required this.questionText,
+    required this.answerForTeacherText,
+    required this.lessonNumber,
+  });
+
+  final Key? key;
+
+  final int questionId;
+
+  final String questionText;
+
+  final String answerForTeacherText;
+
+  final int lessonNumber;
+
+  @override
+  String toString() {
+    return 'EditQuestionRouteArgs{key: $key, questionId: $questionId, questionText: $questionText, answerForTeacherText: $answerForTeacherText, lessonNumber: $lessonNumber}';
+  }
 }
 
 /// generated route for
