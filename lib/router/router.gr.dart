@@ -15,6 +15,12 @@ abstract class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
+    AddQuestionRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const AddQuestionScreen(),
+      );
+    },
     EditQuestionRoute.name: (routeData) {
       final args = routeData.argsAs<EditQuestionRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -52,6 +58,20 @@ abstract class _$AppRouter extends RootStackRouter {
       );
     },
   };
+}
+
+/// generated route for
+/// [AddQuestionScreen]
+class AddQuestionRoute extends PageRouteInfo<void> {
+  const AddQuestionRoute({List<PageRouteInfo>? children})
+      : super(
+          AddQuestionRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'AddQuestionRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
 }
 
 /// generated route for

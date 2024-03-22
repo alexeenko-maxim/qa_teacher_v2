@@ -28,8 +28,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Убран const
-      appBar: const KnowledgeAppBar(),
+      appBar: KnowledgeAppBar(onAddQuestionPressed: onAddQuestionPressed,),
       body: QuestionListView(
         questionList: questionList,
         onQuestionUpdated: onQuestionUpdated,
@@ -42,10 +41,15 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
       questionList = apiClient.getQuestionList();
     });
   }
+
+  void onAddQuestionPressed() {
+    AutoRouter.of(context).push(AddQuestionRoute()).then((_) => onQuestionUpdated());
+  }
 }
 
 class KnowledgeAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const KnowledgeAppBar({Key? key}) : super(key: key);
+  final VoidCallback onAddQuestionPressed;
+  const KnowledgeAppBar({Key? key, required this.onAddQuestionPressed}) : super(key: key);
 
   @override
   State<KnowledgeAppBar> createState() => _KnowledgeAppBarState();
@@ -76,7 +80,7 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
       actions: <Widget>[
         TextButton(
           onPressed: () async {
-            // Обработчик для "Добавить новый вопрос"
+            widget.onAddQuestionPressed();
           },
           child: const Text('Добавить новый вопрос',
               style: TextStyle(
@@ -326,7 +330,7 @@ class _EditQuestionScreenState extends State<EditQuestionScreen> {
     );
   }
 }
-
+@RoutePage()
 class AddQuestionScreen extends StatefulWidget {
   const AddQuestionScreen({Key? key}) : super(key: key);
 
@@ -338,17 +342,23 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
   final TextEditingController _questionController = TextEditingController();
   final TextEditingController _answerController = TextEditingController();
   final TextEditingController _lessonNumberController = TextEditingController();
+  late final QaTeacherApiClient apiClient;
 
   Future<void> _addQuestion() async {
-    // Здесь будет логика добавления вопроса через API
-    // Пример вызова API:
-    // await apiClient.addQuestion(
-    //   questionText: _questionController.text,
-    //   answerForTeacherText: _answerController.text,
-    //   lessonNumber: int.tryParse(_lessonNumberController.text) ?? 1 // Примерная логика
-    // );
+    await apiClient.addQuestion(
+      questionText: _questionController.text,
+      answerForTeacherText: _answerController.text,
+      lessonNumber: int.tryParse(_lessonNumberController.text) ?? 1 // Примерная логика
+    );
 
     Navigator.pop(context, true);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Инициализация apiClient здесь
+    apiClient = QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']);
   }
 
   @override

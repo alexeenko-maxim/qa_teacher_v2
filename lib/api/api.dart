@@ -40,4 +40,11 @@ abstract class QaTeacherApiClient {
     @Field('answerForTeacherText') required String answerForTeacherText,
     @Field('lessonNumber') required int lessonNumber,
   });
+
+  @POST('/addQuestion')
+  Future<void> addQuestion({
+    @Field('questionText') required String questionText,
+    @Field('answerForTeacherText') required String answerForTeacherText,
+    @Field('lessonNumber') required int lessonNumber,
+  });
 }
