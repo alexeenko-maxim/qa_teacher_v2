@@ -54,6 +54,7 @@ abstract class _$AppRouter extends RootStackRouter {
           key: args.key,
           student: args.student,
           questionList: args.questionList,
+          apiClient: args.apiClient,
         ),
       );
     },
@@ -162,6 +163,7 @@ class LessonRoute extends PageRouteInfo<LessonRouteArgs> {
     Key? key,
     required Student student,
     required List<Question> questionList,
+    required QaTeacherApiClient apiClient,
     List<PageRouteInfo>? children,
   }) : super(
           LessonRoute.name,
@@ -169,6 +171,7 @@ class LessonRoute extends PageRouteInfo<LessonRouteArgs> {
             key: key,
             student: student,
             questionList: questionList,
+            apiClient: apiClient,
           ),
           initialChildren: children,
         );
@@ -183,6 +186,7 @@ class LessonRouteArgs {
     this.key,
     required this.student,
     required this.questionList,
+    required this.apiClient,
   });
 
   final Key? key;
@@ -191,8 +195,10 @@ class LessonRouteArgs {
 
   final List<Question> questionList;
 
+  final QaTeacherApiClient apiClient;
+
   @override
   String toString() {
-    return 'LessonRouteArgs{key: $key, student: $student, questionList: $questionList}';
+    return 'LessonRouteArgs{key: $key, student: $student, questionList: $questionList, apiClient: $apiClient}';
   }
 }

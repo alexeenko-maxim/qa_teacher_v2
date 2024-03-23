@@ -5,6 +5,7 @@ import 'package:qa_teacher/api/model/student.dart';
 import 'package:qa_teacher/features/home/widgets/view/knowledge_screen.dart';
 import 'package:qa_teacher/features/lesson/view/lesson_screen.dart';
 
+import '../api/api.dart';
 import '../features/home/view/home_screen.dart';
 
 part 'router.gr.dart';

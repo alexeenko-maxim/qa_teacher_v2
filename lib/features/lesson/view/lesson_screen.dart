@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:qa_teacher/api/model/question.dart';
 import 'package:qa_teacher/api/model/student.dart';
 
+import '../../../api/api.dart';
+
 @RoutePage()
 class LessonScreen extends StatefulWidget {
-  const LessonScreen({super.key, required this.student, required this.questionList});
+  const LessonScreen({super.key, required this.student, required this.questionList, required this.apiClient});
 
   final Student student;
   final List<Question> questionList;
+  final QaTeacherApiClient apiClient; // Добавляем это поле
 
   @override
   State<LessonScreen> createState() => _LessonScreenState();
@@ -29,6 +32,7 @@ class _LessonScreenState extends State<LessonScreen> {
       body: _QuestionListView(
         student: widget.student,
         questionList: widget.questionList,
+        apiClient: widget.apiClient, // Передаем экземпляр apiClient
       ),
     );
   }
@@ -64,20 +68,30 @@ class _LessonAppBarState extends State<LessonAppBar> {
 }
 
 class _QuestionListView extends StatefulWidget {
-  const _QuestionListView({
+   _QuestionListView({
     Key? key,
     required this.student,
-    required this.questionList,
+    required this.questionList, required this.apiClient,
   }) : super(key: key);
 
   final Student student;
-  final List<Question> questionList;
+  List<Question> questionList;
+  final QaTeacherApiClient apiClient; // Укажите тип вашего API клиента
 
   @override
   State<_QuestionListView> createState() => _QuestionListViewState();
 }
 
 class _QuestionListViewState extends State<_QuestionListView> {
+
+  Future<void> _updateQuestionList() async {
+    var updatedList = await widget.apiClient.getQuestionList(); // Предполагается метод получения обновленного списка вопросов
+    setState(() {
+      widget.questionList = updatedList;
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -91,7 +105,10 @@ class _QuestionListViewState extends State<_QuestionListView> {
           itemBuilder: (context, index) => QuestionRow(
             question: widget.questionList[index].questionText,
             answerForTeacher: widget.questionList[index].answerForTeacherText,
-            answerRate: 0,
+            answerRate: 0, // Используйте реальное значение rate
+            apiClient: widget.apiClient,
+            studentId: widget.student.studentId, // Передайте studentId
+            onUpdate: _updateQuestionList, // Передайте метод обновления списка вопросов
           ),
           itemCount: widget.questionList.length,
         ),
@@ -123,78 +140,127 @@ class _QuestionListViewState extends State<_QuestionListView> {
 }
 
 class QuestionRow extends StatefulWidget {
-  const QuestionRow({super.key, required this.question, required this.answerForTeacher, required this.answerRate});
-
+  const QuestionRow({super.key, required this.question, required this.answerForTeacher, required this.answerRate, required this.apiClient, required this.onUpdate, required this.studentId});
+  final QaTeacherApiClient apiClient; // Укажите тип вашего API клиента
   final String question;
   final String answerForTeacher;
   final int answerRate;
+  final Function onUpdate;
+  final int studentId; // Добавьте это поле
 
   @override
   State<QuestionRow> createState() => _QuestionRowState();
 }
 
 class _QuestionRowState extends State<QuestionRow> {
+  // Переменная для хранения текущей оценки
+  int currentRate = 0;
+
+  void _handleRateChange(int value) {
+    setState(() {
+      currentRate = value;
+    });
+  }
+
+  void _submitRating() async {
+    await widget.apiClient.updateProgress(
+      studentId: widget.studentId,
+      questionId: 1, // Предполагается, что у вас есть доступ к ID вопроса
+      rateAnswer: currentRate,
+    );
+
+    widget.onUpdate(); // Вызовите функцию обновления, переданную через конструктор
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Проверяем, мобильное ли это устройство
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 30).copyWith(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.question,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  widget.answerForTeacher,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+      child: isMobile ? buildMobileLayout() : buildDesktopLayout(),
+    );
+  }
+
+  Widget buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.question,
+          maxLines: 10,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
+        Text(
+          widget.answerForTeacher,
+          maxLines: 10,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 16), // Добавляем пространство между текстом и кнопками
+        Column(
+          children: [
+            RatingWidget(
+              maxRating: 3,
+              onChanged: (int value) {},
             ),
-          ),
-          Column(
+            const SizedBox(width: 16), // Добавляем пространство между рейтингом и кнопкой
+            TextButton(
+              onPressed: _submitRating,
+              child: const Text(
+                'Оценить',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildDesktopLayout() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 40,
-                  ),
-                  RatingWidget(
-                    maxRating: 3,
-                    onChanged: (int value) {},
-                  ),
-                  const SizedBox(
-                    width: 40,
-                  ),
-                  TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Оценить',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )),
-                ],
+              Text(
+                widget.question,
+                maxLines: 10,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              Text(
+                widget.answerForTeacher,
+                maxLines: 10,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        Row(
+          children: [
+            RatingWidget(
+              maxRating: 3,
+              onChanged: _handleRateChange,
+            ),
+            const SizedBox(width: 40),
+            TextButton(
+              onPressed: _submitRating,
+              child: const Text(
+                'Оценить',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

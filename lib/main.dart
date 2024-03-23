@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:qa_teacher/router/router.dart';
-
+import 'package:qa_teacher/util/logger/navigation_logger.dart';
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 Future<void> main() async {
   // Гарантирует, что все необходимые компоненты Flutter, такие как рендеринг, синхронизация состояний и т. д., будут инициализированы до запуска вашего приложения
@@ -29,7 +30,10 @@ class _QaTeacherAppState extends State<QaTeacherApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      routerConfig: _router.config(),
+      routerDelegate: _router.delegate(
+        navigatorObservers: () => [LoggingNavigatorObserver()], // Добавьте свой RouteObserver
+      ),
+      routeInformationParser: _router.defaultRouteParser(),
     );
   }
 }

@@ -195,57 +195,79 @@ class _StudentRowState extends State<StudentRow> {
   @override
   void initState() {
     super.initState();
-    apiClient =
-        QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']); // Пример инициализации, адаптируйте под свой случай
-    questionList = apiClient.startLesson(1);
-    print(questionList);
+    apiClient = QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']);
+    questionList = apiClient.startLesson(widget.student.studentId);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Определение, является ли устройство мобильным
+    final isMobileDevice = isMobile(context);
     return Container(
-      width: double.infinity,
+      width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.symmetric(horizontal: 30).copyWith(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1)),
-      child: Row(
+      child: isMobileDevice
+          ? Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: buildMobileLayout(),
+      )
+          : Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            widget.student.fullName,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Пройденно уроков: [${widget.student.currentLessonNumber}]'),
-              const SizedBox(
-                width: 20,
-              ),
-              Text('Осталось уроков: [${30 - (widget.student.currentLessonNumber)}]'),
-              const SizedBox(
-                width: 20,
-              ),
-              TextButton(
-                  onPressed: () async {
-                    final questions = await apiClient.startLesson(widget.student.studentId);
-                    AutoRouter.of(context).push(LessonRoute(
-                        student: widget.student,
-                        questionList: questions)); // Предполагаем, что LessonRoute принимает сп
-                  },
-                  child: const Text('Начать следующий урок',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      )))
-            ],
-          ),
-        ],
+        children: buildDesktopLayout(),
       ),
     );
+  }
+
+  List<Widget> buildMobileLayout() {
+    return [
+      Text(
+        widget.student.fullName,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+      ),
+      SizedBox(height: 8),
+      Text('Пройденно уроков: [${widget.student.currentLessonNumber}]'),
+      SizedBox(height: 8),
+      Text('Осталось уроков: [${30 - widget.student.currentLessonNumber}]'),
+      SizedBox(height: 8),
+      TextButton(
+        onPressed: () async {
+          final questions = await apiClient.startLesson(widget.student.studentId);
+          AutoRouter.of(context).push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
+        },
+        child: const Text('Начать следующий урок', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+      )
+    ];
+  }
+
+  List<Widget> buildDesktopLayout() {
+    return [
+      Expanded(
+        child: Text(
+          widget.student.fullName,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
+      ),
+      Expanded(
+        child: Text('Пройденно уроков: [${widget.student.currentLessonNumber}]'),
+      ),
+      Expanded(
+        child: Text('Осталось уроков: [${30 - widget.student.currentLessonNumber}]'),
+      ),
+      TextButton(
+        onPressed: () async {
+          final questions = await apiClient.startLesson(widget.student.studentId);
+          AutoRouter.of(context).push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
+        },
+        child: const Text('Начать следующий урок', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+      )
+    ];
+  }
+
+
+  bool isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < 600;
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../util/logger/logger.dart';
 import 'model/question.dart';
 import 'model/student.dart';
 
@@ -18,6 +19,19 @@ abstract class QaTeacherApiClient {
 
   factory QaTeacherApiClient.create({String? apiUrl}) {
     final dio = Dio();
+    // Добавление интерцептора логирования
+    dio.interceptors.add(LogInterceptor(
+      request: false,
+      requestBody: true,
+      responseBody: true,
+      responseHeader: false,
+      requestHeader: false,
+      error: true,
+      logPrint: (object) {
+        appLogger.d(object.toString()); // Использование вашего логгера
+      },
+    ));
+
     if (apiUrl != null) {
       return QaTeacherApiClient(dio, baseUrl: apiUrl);
     }
@@ -50,4 +64,15 @@ abstract class QaTeacherApiClient {
 
   @POST('/createStudent')
   Future<void> createStudent(@Field('fullName') String fullName);
+
+  @PUT('/updateProgress')
+  Future<void> updateProgress({
+    @Field('studentId') required int studentId,
+    @Field('questionId') required int questionId,
+    @Field('rateAnswer') required int rateAnswer,
+  });
 }
+
+
+
+
