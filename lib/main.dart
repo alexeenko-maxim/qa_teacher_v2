@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:qa_teacher/router/router.dart';
+import 'package:qa_teacher/theme/app_theme.dart';
 import 'package:qa_teacher/util/logger/navigation_logger.dart';
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -26,10 +27,7 @@ class _QaTeacherAppState extends State<QaTeacherApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'QaTeacher',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       routerDelegate: _router.delegate(
         navigatorObservers: () => [LoggingNavigatorObserver()], // Добавьте свой RouteObserver
       ),

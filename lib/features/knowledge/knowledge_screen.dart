@@ -62,7 +62,6 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.grey,
       leading: IconButton(
         icon: Icon(Icons.home),
         tooltip: 'Главная', // Текст, который будет показан при долгом нажатии
@@ -73,9 +72,6 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
       ),
       title: const Text(
         'База знаний',
-        style: TextStyle(
-          color: Colors.white,
-        ),
       ),
       actions: <Widget>[
         TextButton(
@@ -84,8 +80,6 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
           },
           child: const Text('Добавить новый вопрос',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
                 color: Colors.white, // Указываем цвет текста
               )),
         ),
@@ -191,32 +185,18 @@ class _QuestionRowState extends State<QuestionRow> {
               children: [
                 Text(
                   'Вопрос к занятию ${widget.lessonNumber}', // номер урока
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
                 ),
                 const SizedBox(height: 4), // Добавляем небольшой отступ
                 Text(
                   'Номер вопроса ${widget.index}', // Порядковый номер вопроса
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
                 ),
                 const SizedBox(height: 8), // Отступ между номером вопроса и его текстом
                 Text(
                   widget.question, // Текст вопроса
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
                 ),
                 const SizedBox(height: 4), // Отступ между вопросом и ответом
                 Text(
                   widget.answerForTeacher, // Ответ для учителя
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
                 ),
               ],
             ),

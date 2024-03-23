@@ -94,12 +94,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.grey,
       title: const Text(
         'Панель управления',
-        style: TextStyle(
-          color: Colors.white,
-        ),
       ),
       actions: <Widget>[
         Row(
@@ -109,7 +105,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: const Text(
                 'Создать нового ученика',
                 style: TextStyle(
-                  color: Colors.blue,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -121,7 +117,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: const Text(
                 'База знаний',
                 style: TextStyle(
-                  color: Colors.blue,
+                  color: Colors.white,
                 ),
               ),
             ),
