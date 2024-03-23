@@ -30,15 +30,63 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Убран const
-      appBar: const HomeAppBar(),
+      appBar: HomeAppBar(onAddStudentPressed: () => _showAddStudentDialog(context)),
       body: StudentsList(studentsList: studentsList),
     );
+  }
+
+  Future<void> _showAddStudentDialog(BuildContext context) async {
+    final TextEditingController _nameController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Добавить нового ученика'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(hintText: "Имя ученика"),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Отмена'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Добавить'),
+              onPressed: () async {
+                if (_nameController.text.isNotEmpty) {
+                  await apiClient.createStudent(_nameController.text);
+                  // Обновите список учеников здесь, если это необходимо
+                  Navigator.of(context).pop();
+                  _refreshStudentsList(); // Предполагается, что эта функция обновляет список студентов
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _refreshStudentsList() {
+    setState(() {
+      studentsList = apiClient.getStudentList();
+    });
   }
 }
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const HomeAppBar({Key? key}) : super(key: key);
+  final VoidCallback onAddStudentPressed;
+  const HomeAppBar({Key? key, required this.onAddStudentPressed}) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -57,7 +105,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         Row(
           children: [
             TextButton(
-              onPressed: () => _showAddStudentDialog(context),
+              onPressed: onAddStudentPressed,
               child: const Text(
                 'Создать нового ученика',
                 style: TextStyle(
@@ -183,9 +231,7 @@ class _StudentRowState extends State<StudentRow> {
               ),
               TextButton(
                   onPressed: () async {
-                    print(widget.student.studentId);
                     final questions = await apiClient.startLesson(widget.student.studentId);
-                    print(questionList.toString());
                     AutoRouter.of(context).push(LessonRoute(
                         student: widget.student,
                         questionList: questions)); // Предполагаем, что LessonRoute принимает сп
@@ -203,45 +249,3 @@ class _StudentRowState extends State<StudentRow> {
   }
 }
 
-Future<void> _showAddStudentDialog(BuildContext context) async {
-  final TextEditingController _nameController = TextEditingController();
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false, // User must tap button!
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Добавить нового ученика'),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(hintText: "Имя ученика"),
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Отмена'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Добавить'),
-            onPressed: () async {
-              if (_nameController.text.isNotEmpty) {
-                // Здесь логика добавления нового ученика через API
-                // Пример:
-                // await apiClient.addStudent(_nameController.text);
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}

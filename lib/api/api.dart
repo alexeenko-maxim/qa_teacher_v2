@@ -47,4 +47,7 @@ abstract class QaTeacherApiClient {
     @Field('answerForTeacherText') required String answerForTeacherText,
     @Field('lessonNumber') required int lessonNumber,
   });
+
+  @POST('/createStudent')
+  Future<void> createStudent(@Field('fullName') String fullName);
 }
