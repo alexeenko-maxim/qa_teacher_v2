@@ -58,6 +58,16 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    StatisticsRoute.name: (routeData) {
+      final args = routeData.argsAs<StatisticsRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: StatisticsScreen(
+          key: args.key,
+          studentId: args.studentId,
+        ),
+      );
+    },
   };
 }
 
@@ -200,5 +210,43 @@ class LessonRouteArgs {
   @override
   String toString() {
     return 'LessonRouteArgs{key: $key, student: $student, questionList: $questionList, apiClient: $apiClient}';
+  }
+}
+
+/// generated route for
+/// [StatisticsScreen]
+class StatisticsRoute extends PageRouteInfo<StatisticsRouteArgs> {
+  StatisticsRoute({
+    Key? key,
+    required int studentId,
+    List<PageRouteInfo>? children,
+  }) : super(
+          StatisticsRoute.name,
+          args: StatisticsRouteArgs(
+            key: key,
+            studentId: studentId,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'StatisticsRoute';
+
+  static const PageInfo<StatisticsRouteArgs> page =
+      PageInfo<StatisticsRouteArgs>(name);
+}
+
+class StatisticsRouteArgs {
+  const StatisticsRouteArgs({
+    this.key,
+    required this.studentId,
+  });
+
+  final Key? key;
+
+  final int studentId;
+
+  @override
+  String toString() {
+    return 'StatisticsRouteArgs{key: $key, studentId: $studentId}';
   }
 }

@@ -7,6 +7,7 @@ import 'package:qa_teacher/features/lesson/view/lesson_screen.dart';
 
 import '../api/api.dart';
 import '../features/home/view/home_screen.dart';
+import '../features/statistic/view/statistic_screen.dart';
 
 part 'router.gr.dart';
 
@@ -19,5 +20,6 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: KnowledgeRoute.page, path: '/knowledge'),
         AutoRoute(page: EditQuestionRoute.page, path: '/editQuestion'),
         AutoRoute(page: AddQuestionRoute.page, path: '/addQuestion'),
+        AutoRoute(page: StatisticsRoute.page, path: '/staistic'),
       ];
 }

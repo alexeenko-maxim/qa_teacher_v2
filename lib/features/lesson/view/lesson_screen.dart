@@ -4,6 +4,7 @@ import 'package:qa_teacher/api/model/question.dart';
 import 'package:qa_teacher/api/model/student.dart';
 
 import '../../../api/api.dart';
+import '../../../router/router.dart';
 
 @RoutePage()
 class LessonScreen extends StatefulWidget {
@@ -68,10 +69,11 @@ class _LessonAppBarState extends State<LessonAppBar> {
 }
 
 class _QuestionListView extends StatefulWidget {
-   _QuestionListView({
+  _QuestionListView({
     Key? key,
     required this.student,
-    required this.questionList, required this.apiClient,
+    required this.questionList,
+    required this.apiClient,
   }) : super(key: key);
 
   final Student student;
@@ -83,12 +85,12 @@ class _QuestionListView extends StatefulWidget {
 }
 
 class _QuestionListViewState extends State<_QuestionListView> {
+  bool canFinishLesson = false; // Добавляем состояние для активации кнопки
 
   Future<void> _updateQuestionList() async {
-    var updatedList = await widget.apiClient.getQuestionList(); // Предполагается метод получения обновленного списка вопросов
+    var updatedList = await widget.apiClient.startLesson(widget.student.studentId);
     setState(() {
       widget.questionList = updatedList;
-
     });
   }
 
@@ -103,11 +105,13 @@ class _QuestionListViewState extends State<_QuestionListView> {
         ),
         SliverList.builder(
           itemBuilder: (context, index) => QuestionRow(
+            questionNumber: index,
             question: widget.questionList[index].questionText,
             answerForTeacher: widget.questionList[index].answerForTeacherText,
             answerRate: 0, // Используйте реальное значение rate
             apiClient: widget.apiClient,
             studentId: widget.student.studentId, // Передайте studentId
+            questionId: widget.questionList[index].questionId,
             onUpdate: _updateQuestionList, // Передайте метод обновления списка вопросов
           ),
           itemCount: widget.questionList.length,
@@ -121,8 +125,19 @@ class _QuestionListViewState extends State<_QuestionListView> {
                   width: 240,
                   height: 40,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: widget.questionList.isEmpty
+                        ? () async {
+                            // Вызов finishLesson
+                            await widget.apiClient.finishLesson(widget.student.studentId);
+
+                            // Переход на экран статистики (предполагается, что у вас есть Route для этого экрана)
+                            AutoRouter.of(context).push(StatisticsRoute(studentId: widget.student.studentId));
+                          }
+                        : null, // Если список вопросов не пуст, кнопка будет неактивной
                     child: const Text('Завершить урок'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white, backgroundColor: widget.questionList.isEmpty ? Colors.blue : Colors.grey,
+                    ),
                   ),
                 ),
               ],
@@ -140,13 +155,24 @@ class _QuestionListViewState extends State<_QuestionListView> {
 }
 
 class QuestionRow extends StatefulWidget {
-  const QuestionRow({super.key, required this.question, required this.answerForTeacher, required this.answerRate, required this.apiClient, required this.onUpdate, required this.studentId});
+  const QuestionRow(
+      {super.key,
+      required this.question,
+      required this.answerForTeacher,
+      required this.answerRate,
+      required this.apiClient,
+      required this.onUpdate,
+      required this.studentId,
+      required this.questionId,
+      required this.questionNumber});
   final QaTeacherApiClient apiClient; // Укажите тип вашего API клиента
   final String question;
   final String answerForTeacher;
   final int answerRate;
   final Function onUpdate;
   final int studentId; // Добавьте это поле
+  final int questionId;
+  final int questionNumber;
 
   @override
   State<QuestionRow> createState() => _QuestionRowState();
@@ -155,20 +181,29 @@ class QuestionRow extends StatefulWidget {
 class _QuestionRowState extends State<QuestionRow> {
   // Переменная для хранения текущей оценки
   int currentRate = 0;
+  int ratingWidgetKey = 0;
 
-  void _handleRateChange(int value) {
+  void _resetRatingWidget() {
     setState(() {
-      currentRate = value;
+      // Изменяем ключ, заставляя Flutter пересоздать RatingWidget
+      ratingWidgetKey++;
     });
   }
 
   void _submitRating() async {
     await widget.apiClient.updateProgress(
       studentId: widget.studentId,
-      questionId: 1, // Предполагается, что у вас есть доступ к ID вопроса
+      questionId: widget.questionId, // Предполагается, что у вас есть доступ к ID вопроса
       rateAnswer: currentRate,
     );
 
+    // Сброс текущей оценки после успешной отправки
+    setState(() {
+      currentRate = 0; // Сбрасываем значение оценки после отправки
+    });
+
+    // Сбрасываем рейтинг и обновляем список вопросов
+    _resetRatingWidget();
     widget.onUpdate(); // Вызовите функцию обновления, переданную через конструктор
   }
 
@@ -190,6 +225,12 @@ class _QuestionRowState extends State<QuestionRow> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'Вопрос ${widget.questionNumber+1}',
+          maxLines: 10,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
         Text(
           widget.question,
           maxLines: 10,
@@ -231,6 +272,12 @@ class _QuestionRowState extends State<QuestionRow> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
+                'Вопрос ${widget.questionNumber+1}',
+                maxLines: 10,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              Text(
                 widget.question,
                 maxLines: 10,
                 overflow: TextOverflow.ellipsis,
@@ -247,8 +294,13 @@ class _QuestionRowState extends State<QuestionRow> {
         Row(
           children: [
             RatingWidget(
+              key: ValueKey(ratingWidgetKey), // Используем уникальный ключ
               maxRating: 3,
-              onChanged: _handleRateChange,
+              onChanged: (int value) {
+                setState(() {
+                  currentRate = value;
+                });
+              },
             ),
             const SizedBox(width: 40),
             TextButton(

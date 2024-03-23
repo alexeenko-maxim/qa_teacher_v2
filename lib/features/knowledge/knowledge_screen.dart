@@ -190,14 +190,14 @@ class _QuestionRowState extends State<QuestionRow> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${widget.lessonNumber}', // номер урока
+                  'Вопрос к занятию ${widget.lessonNumber}', // номер урока
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4), // Добавляем небольшой отступ
                 Text(
-                  '${widget.index}', // Порядковый номер вопроса
+                  'Номер вопроса ${widget.index}', // Порядковый номер вопроса
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
