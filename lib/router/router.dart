@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:qa_teacher/api/model/question.dart';
 import 'package:qa_teacher/api/model/student.dart';
-import 'package:qa_teacher/features/home/widgets/view/knowledge_screen.dart';
+import 'package:qa_teacher/features/knowledge/knowledge_screen.dart';
 import 'package:qa_teacher/features/lesson/view/lesson_screen.dart';
 
 import '../api/api.dart';
