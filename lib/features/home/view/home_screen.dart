@@ -139,10 +139,10 @@ class StudentsListState extends State<StudentsList> {
       print('ВЫзов метода setState из refreshList');
       context.read<StudentBloc>().add(LoadStudentsEvent());
     });
-    setState(() {
-      print('ВЫзов метода setState из refreshList');
-      context.read<StudentBloc>().add(LoadStudentsEvent());
-    });
+    // setState(() {
+    //   print('ВЫзов метода setState из refreshList');
+    //   context.read<StudentBloc>().add(LoadStudentsEvent());
+    // });
 
   }
   @override
