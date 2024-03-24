@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:meta/meta.dart';
 import '../../../../api/api.dart';
 import '../../../../api/model/student.dart';
 
@@ -21,21 +20,22 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     try {
       final students = await apiClient.getStudentList();
       final studentStrings = students.map((student) => student.fullName).join(", ");
-      print('Students loaded successfully: $studentStrings');
+      print('Вызов final students = await apiClient.getStudentList(); в _onLoadStudents, \n Sudents loaded successfully: $studentStrings');
       emit(StudentsLoadSuccess(students));
-      // Логирование успешной загрузки
-      print('Students loaded successfully');
+      print('Вызов emit(StudentsLoadSuccess(students)); в _onLoadStudents, \n students: ${students.map((student) => student.fullName).join(", ")}');
     } catch (e) {
       emit(StudentsLoadFailure(e.toString()));
-      // Логирование ошибки загрузки
       print('Error loading students: $e');
     }
   }
+
   Future<void> _onCreateStudent(CreateStudentEvent event, Emitter<StudentState> emit) async {
+    print('Вызов метода _onCreateStudent');
     try {
       await apiClient.createStudent(event.name);
-      // Опционально: вызвать загрузку списка студентов после добавления нового
-      add(LoadStudentsEvent());
+      final students = await apiClient.getStudentList();
+      emit(StudentsLoadSuccess(students));
+      print('Вызов emit(StudentsLoadSuccess(students)); в _onCreateStudent, \n students: ${students.map((student) => student.fullName).join(", ")}');
     } catch (e) {
       print('Error creating student: $e');
       emit(StudentsLoadFailure(e.toString()));

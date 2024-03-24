@@ -12,7 +12,8 @@ class _DebugFilter extends LogFilter {
 
 class LoggingNavigatorObserver extends RouteObserver {
   final Logger logger = Logger(filter: _DebugFilter());
-  void _log(String message, [Level level = Level.debug]) { // Default level is debug
+  void _log(String message, [Level level = Level.debug]) {
+    // Default level is debug
     if (kDebugMode) {
       appLogger.log(level, message); // Pass the level and message
     }

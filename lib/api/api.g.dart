@@ -196,12 +196,12 @@ class _QaTeacherApiClient implements QaTeacherApiClient {
   }
 
   @override
-  Future<void> createStudent(String fullName) async {
+  Future<bool> createStudent(String fullName) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = {'fullName': fullName};
-    await _dio.fetch<void>(_setStreamType<void>(Options(
+    final _result = await _dio.fetch<bool>(_setStreamType<bool>(Options(
       method: 'POST',
       headers: _headers,
       extra: _extra,
@@ -217,6 +217,8 @@ class _QaTeacherApiClient implements QaTeacherApiClient {
           _dio.options.baseUrl,
           baseUrl,
         ))));
+    final value = _result.data!;
+    return value;
   }
 
   @override

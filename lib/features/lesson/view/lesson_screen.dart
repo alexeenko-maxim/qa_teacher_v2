@@ -136,7 +136,8 @@ class _QuestionListViewState extends State<_QuestionListView> {
                         : null, // Если список вопросов не пуст, кнопка будет неактивной
                     child: const Text('Завершить урок'),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: widget.questionList.isEmpty ? Colors.blue : Colors.grey,
+                      foregroundColor: Colors.white,
+                      backgroundColor: widget.questionList.isEmpty ? Colors.blue : Colors.grey,
                     ),
                   ),
                 ),
@@ -226,7 +227,7 @@ class _QuestionRowState extends State<QuestionRow> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Вопрос ${widget.questionNumber+1}',
+          'Вопрос ${widget.questionNumber + 1}',
           maxLines: 10,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
@@ -272,7 +273,7 @@ class _QuestionRowState extends State<QuestionRow> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Вопрос ${widget.questionNumber+1}',
+                'Вопрос ${widget.questionNumber + 1}',
                 maxLines: 10,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),

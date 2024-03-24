@@ -1,7 +1,6 @@
 part of 'student_bloc.dart';
 
-@immutable
-abstract class StudentState extends Equatable {
+sealed class StudentState extends Equatable {
   @override
   List<Object> get props => [];
 }
@@ -12,11 +11,12 @@ class StudentsLoadInProgress extends StudentState {}
 
 class StudentsLoadSuccess extends StudentState {
   final List<Student> students;
+  final DateTime timestamp;
 
-  StudentsLoadSuccess(this.students);
+  StudentsLoadSuccess(this.students) : timestamp = DateTime.now();
 
   @override
-  List<Object> get props => [students];
+  List<Object> get props => [students, timestamp];
 }
 
 class StudentsLoadFailure extends StudentState {

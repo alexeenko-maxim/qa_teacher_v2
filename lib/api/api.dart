@@ -16,14 +16,13 @@ abstract class QaTeacherApiClient {
     "Access-Control_Allow_Origin": "*",
   };
 
-
   factory QaTeacherApiClient.create({String? apiUrl}) {
     final dio = Dio();
     // Добавление интерцептора логирования
     dio.interceptors.add(LogInterceptor(
       request: false,
-      requestBody: false,
-      responseBody: false,
+      requestBody: true,
+      responseBody: true,
       responseHeader: false,
       requestHeader: false,
       error: true,
@@ -43,7 +42,7 @@ abstract class QaTeacherApiClient {
 
   @GET('/getQuestions')
   Future<List<Question>> getQuestionList();
-  
+
   @POST('/startLesson')
   Future<List<Question>> startLesson(@Field('studentId') int studentId);
 
@@ -66,7 +65,7 @@ abstract class QaTeacherApiClient {
   });
 
   @POST('/createStudent')
-  Future<void> createStudent(@Field('fullName') String fullName);
+  Future<bool> createStudent(@Field('fullName') String fullName);
 
   @PUT('/updateProgress')
   Future<void> updateProgress({
@@ -75,7 +74,3 @@ abstract class QaTeacherApiClient {
     @Field('rateAnswer') required int rateAnswer,
   });
 }
-
-
-
-

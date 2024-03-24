@@ -1,4 +1,3 @@
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'student.g.dart';
@@ -16,8 +15,8 @@ class Student {
   });
 
   factory Student.fromJson(Map<String, dynamic> json) => Student(
-    studentId: json["studentId"],
-    fullName: json["fullName"],
-    currentLessonNumber: json["currentLessonNumber"],
-  );
+        studentId: json["studentId"],
+        fullName: json["fullName"],
+        currentLessonNumber: json["currentLessonNumber"],
+      );
 }

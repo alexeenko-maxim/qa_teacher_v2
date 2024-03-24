@@ -28,7 +28,9 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: KnowledgeAppBar(onAddQuestionPressed: onAddQuestionPressed,),
+      appBar: KnowledgeAppBar(
+        onAddQuestionPressed: onAddQuestionPressed,
+      ),
       body: QuestionListView(
         questionList: questionList,
         onQuestionUpdated: onQuestionUpdated,
@@ -67,7 +69,7 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
         tooltip: 'Главная', // Текст, который будет показан при долгом нажатии
         onPressed: () {
           // Логика для возвращения на главный экран
-          AutoRouter.of(context).replace(const HomeRoute());
+          AutoRouter.of(context).replace(HomeRoute());
         },
       ),
       title: const Text(
@@ -91,7 +93,8 @@ class _KnowledgeAppBarState extends State<KnowledgeAppBar> {
 class QuestionListView extends StatefulWidget {
   const QuestionListView({
     Key? key,
-    required this.questionList, required this.onQuestionUpdated,
+    required this.questionList,
+    required this.onQuestionUpdated,
   }) : super(key: key);
   final Future<List<Question>> questionList;
   final VoidCallback onQuestionUpdated;
@@ -119,7 +122,7 @@ class _QuestionListViewState extends State<QuestionListView> {
             } else if (snapshot.hasData) {
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
-                      (context, index) {
+                  (context, index) {
                     final question = snapshot.data![index];
                     return QuestionRow(
                       onQuestionUpdated: widget.onQuestionUpdated,
@@ -144,7 +147,6 @@ class _QuestionListViewState extends State<QuestionListView> {
       ],
     );
   }
-
 }
 
 class QuestionRow extends StatefulWidget {
@@ -155,7 +157,8 @@ class QuestionRow extends StatefulWidget {
     required this.question,
     required this.answerForTeacher,
     required this.lessonNumber,
-    required this.questionId, required this.onQuestionUpdated, // Добавьте questionId здесь
+    required this.questionId,
+    required this.onQuestionUpdated, // Добавьте questionId здесь
   }) : super(key: key);
 
   final int index;
@@ -176,9 +179,11 @@ class _QuestionRowState extends State<QuestionRow> {
       margin: const EdgeInsets.symmetric(horizontal: 30).copyWith(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1)),
-      child: Row( // Используем Row для горизонтального расположения элементов
+      child: Row(
+        // Используем Row для горизонтального расположения элементов
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [ // Правильно используем children для списка виджетов в Row
+        children: [
+          // Правильно используем children для списка виджетов в Row
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +210,10 @@ class _QuestionRowState extends State<QuestionRow> {
             icon: const Icon(Icons.edit),
             onPressed: () async {
               var result = await AutoRouter.of(context).push(EditQuestionRoute(
-                  questionId: widget.questionId, questionText: widget.question, answerForTeacherText: widget.answerForTeacher, lessonNumber: widget.lessonNumber));
+                  questionId: widget.questionId,
+                  questionText: widget.question,
+                  answerForTeacherText: widget.answerForTeacher,
+                  lessonNumber: widget.lessonNumber));
               if (result == true) {
                 // Если вопрос был успешно отредактирован, используйте callback для обновления списка вопросов
                 widget.onQuestionUpdated();
@@ -217,6 +225,7 @@ class _QuestionRowState extends State<QuestionRow> {
     );
   }
 }
+
 @RoutePage()
 class EditQuestionScreen extends StatefulWidget {
   final int questionId;
@@ -265,11 +274,10 @@ class _EditQuestionScreenState extends State<EditQuestionScreen> {
 
     //Пример вызова API:
     await apiClient.updateQuestion(
-      questionId: widget.questionId,
-      questionText: _questionController.text,
-      answerForTeacherText: _answerController.text,
-      lessonNumber: int.tryParse(_lessonNumberController.text) ?? widget.lessonNumber
-    );
+        questionId: widget.questionId,
+        questionText: _questionController.text,
+        answerForTeacherText: _answerController.text,
+        lessonNumber: int.tryParse(_lessonNumberController.text) ?? widget.lessonNumber);
 
     Navigator.pop(context, true);
   }
@@ -310,6 +318,7 @@ class _EditQuestionScreenState extends State<EditQuestionScreen> {
     );
   }
 }
+
 @RoutePage()
 class AddQuestionScreen extends StatefulWidget {
   const AddQuestionScreen({Key? key}) : super(key: key);
@@ -326,10 +335,10 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
 
   Future<void> _addQuestion() async {
     await apiClient.addQuestion(
-      questionText: _questionController.text,
-      answerForTeacherText: _answerController.text,
-      lessonNumber: int.tryParse(_lessonNumberController.text) ?? 1 // Примерная логика
-    );
+        questionText: _questionController.text,
+        answerForTeacherText: _answerController.text,
+        lessonNumber: int.tryParse(_lessonNumberController.text) ?? 1 // Примерная логика
+        );
 
     Navigator.pop(context, true);
   }
@@ -385,4 +394,3 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
     super.dispose();
   }
 }
-

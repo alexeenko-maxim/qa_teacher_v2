@@ -4,14 +4,12 @@ part 'question.g.dart';
 
 @JsonSerializable()
 class Question {
-
   int questionId;
   String questionText;
   String answerForTeacherText;
   int lessonNumber;
 
   Question({
-
     required this.questionId,
     required this.questionText,
     required this.answerForTeacherText,
