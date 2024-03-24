@@ -22,8 +22,8 @@ abstract class QaTeacherApiClient {
     // Добавление интерцептора логирования
     dio.interceptors.add(LogInterceptor(
       request: false,
-      requestBody: true,
-      responseBody: true,
+      requestBody: false,
+      responseBody: false,
       responseHeader: false,
       requestHeader: false,
       error: true,

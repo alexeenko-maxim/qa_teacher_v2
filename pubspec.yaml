@@ -35,6 +35,8 @@ dependencies:
   equatable: ^2.0.5
   mason_cli: ^0.1.0-dev.53
   auto_route: ^7.8.4
+  logging: ^1.2.0
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

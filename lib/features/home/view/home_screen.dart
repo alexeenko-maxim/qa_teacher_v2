@@ -1,42 +1,37 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:qa_teacher/api/model/question.dart';
 import 'package:qa_teacher/router/router.dart';
 
 import '../../../api/api.dart';
 import '../../../api/model/student.dart';
+import '../bloc/student/student_bloc.dart';
 
 @RoutePage()
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late final QaTeacherApiClient apiClient;
-  late Future<List<Student>> studentsList;
-
-  @override
-  void initState() {
-    super.initState();
-    apiClient =
-        QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']); // Пример инициализации, адаптируйте под свой случай
-    studentsList = apiClient.getStudentList();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: HomeAppBar(onAddStudentPressed: () => _showAddStudentDialog(context)),
-      body: StudentsList(studentsList: studentsList),
+    return BlocProvider<StudentBloc>(
+      create: (_) => StudentBloc(
+        apiClient: QaTeacherApiClient.create(apiUrl: dotenv.env['API_URL']),
+      )..add(LoadStudentsEvent()),
+      child: Scaffold(
+        appBar: HomeAppBar(
+          onAddStudentPressed: () => _showAddStudentDialog(context),
+        ),
+        body: StudentsList(),
+      ),
     );
   }
 
   Future<void> _showAddStudentDialog(BuildContext context) async {
     final TextEditingController _nameController = TextEditingController();
+    final studentBloc = BlocProvider.of<StudentBloc>(context);
+    print(studentBloc.state);
 
     return showDialog<void>(
       context: context,
@@ -63,12 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               child: const Text('Добавить'),
-              onPressed: () async {
+              onPressed: () {
                 if (_nameController.text.isNotEmpty) {
-                  await apiClient.createStudent(_nameController.text);
-                  // Обновите список учеников здесь, если это необходимо
+                  // Получаем блок и отправляем событие
+                  context.read<StudentBloc>().add(CreateStudentEvent(name: _nameController.text));
                   Navigator.of(context).pop();
-                  _refreshStudentsList(); // Предполагается, что эта функция обновляет список студентов
                 }
               },
             ),
@@ -76,11 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-  void _refreshStudentsList() {
-    setState(() {
-      studentsList = apiClient.getStudentList();
-    });
   }
 }
 
@@ -128,38 +117,28 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-class StudentsList extends StatefulWidget {
-  final Future<List<Student>> studentsList;
+class StudentsList extends StatelessWidget {
+  StudentsList({Key? key}) : super(key: key);
 
-  const StudentsList({Key? key, required this.studentsList}) : super(key: key);
-
-  @override
-  State<StudentsList> createState() => _StudentsListState();
-}
-
-class _StudentsListState extends State<StudentsList> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Student>>(
-      future: widget.studentsList,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return BlocBuilder<StudentBloc, StudentState>(
+      builder: (context, state) {
+        print('BlocBuilder state: $state');
+        if (state is StudentsLoadInProgress) {
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Ошибка загрузки: ${snapshot.error.toString()}'));
-        } else if (snapshot.hasData) {
+        } else if (state is StudentsLoadFailure) {
+          return Center(child: Text('Ошибка загрузки: ${state.error}'));
+        } else if (state is StudentsLoadSuccess) {
           return CustomScrollView(
             slivers: [
               const SliverToBoxAdapter(
                 child: SizedBox(height: 40),
               ),
               SliverList.builder(
-                itemCount: snapshot.data!.length, // Предполагаем, что snapshot.data содержит ваш список студентов
+                itemCount: state.students.length,
                 itemBuilder: (context, index) {
-                  final student = snapshot.data![index];
-                  return StudentRow(
-                    student: student, // StudentRow - предполагаемый виджет для отображения информации о студенте
-                  );
+                  return StudentRow(student: state.students[index]);
                 },
               ),
             ],
@@ -206,13 +185,13 @@ class _StudentRowState extends State<StudentRow> {
       decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1)),
       child: isMobileDevice
           ? Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: buildMobileLayout(),
-      )
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: buildMobileLayout(),
+            )
           : Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: buildDesktopLayout(),
-      ),
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: buildDesktopLayout(),
+            ),
     );
   }
 
@@ -230,7 +209,8 @@ class _StudentRowState extends State<StudentRow> {
       TextButton(
         onPressed: () async {
           final questions = await apiClient.startLesson(widget.student.studentId);
-          AutoRouter.of(context).push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
+          AutoRouter.of(context)
+              .push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
         },
         child: const Text('Начать следующий урок', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
       )
@@ -254,16 +234,15 @@ class _StudentRowState extends State<StudentRow> {
       TextButton(
         onPressed: () async {
           final questions = await apiClient.startLesson(widget.student.studentId);
-          AutoRouter.of(context).push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
+          AutoRouter.of(context)
+              .push(LessonRoute(student: widget.student, questionList: questions, apiClient: apiClient));
         },
         child: const Text('Начать следующий урок', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
       )
     ];
   }
 
-
   bool isMobile(BuildContext context) {
     return MediaQuery.of(context).size.width < 600;
   }
 }
-
